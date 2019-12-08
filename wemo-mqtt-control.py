@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 #Install dependancy:
 #sudo pip3 install pywemo
 #sudo pip3 install paho-mqtt

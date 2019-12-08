@@ -1,0 +1,7 @@
+[Service]
+Type=simple
+User=mike
+ExecStart=/usr/bin/python3 /home/pi/wemoswitch-to-mqtt/wemo-mqtt-control.py
+
+[Install]
+WantedBy=multi-user.target
