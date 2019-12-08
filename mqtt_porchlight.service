@@ -1,6 +1,6 @@
 [Service]
 Type=simple
-User=mike
+User=pi
 ExecStart=/usr/bin/python3 /home/pi/wemoswitch-to-mqtt/wemo-mqtt-control.py
 
 [Install]
