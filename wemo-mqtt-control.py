@@ -64,10 +64,10 @@ def on_message(client, userdata, msg):
 def service_sundown(client):
     #Update any schedules with "sundown" in them to match daily changes
     #this should be run every day mid-day
-    print("sundown schedule running")
+    #print("sundown schedule running")
     sundown_events = [x for x in schedule.jobs if "sundown" in x.tags]
     for event in sundown_events:
-        print(event)
+        #print(event)
         n = event.next_run
         newsundown = get_sundown(n)
         event.next_run = datetime.datetime(n.year, n.month, n.day, newsundown.hour, newsundown.minute)
@@ -100,4 +100,4 @@ service_sundown(client)
 #Use 1 Hz loop to handle scheduling
 while(True):
     schedule.run_pending()
-    time.sleep(1)
+    time.sleep(60)
