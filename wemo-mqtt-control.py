@@ -4,15 +4,19 @@
 #sudo pip3 install pywemo
 #sudo pip3 install paho-mqtt
 #sudo pip3 install schedule
+#sudo pip3 install astral
 
 import pywemo
 import paho.mqtt.client as mqtt
 import schedule
 import time
 import datetime
+from astral import Astral
+
 
 porchlight_addr = "192.168.1.137"
 topic = "lighting/porchlight"
+city = "Madison"
 
 
 #Wemo functions
@@ -61,15 +65,21 @@ def service_sundown(client):
     #Update any schedules with "sundown" in them to match daily changes
     #this should be run every day mid-day
     print("sundown schedule running")
-    newhour = 19
-    newminute = 21
     sundown_events = [x for x in schedule.jobs if "sundown" in x.tags]
     for event in sundown_events:
         print(event)
         n = event.next_run
-        event.next_run = datetime.datetime(n.year, n.month, n.day, newhour, newminute)
-        event.at_time = datetime.time(newhour, newminute)
+        newsundown = get_sundown(n)
+        event.next_run = datetime.datetime(n.year, n.month, n.day, newsundown.hour, newsundown.minute)
+        event.at_time = datetime.time(newsundown.hour, newsundown.minute)
         client.publish(topic, payload="Next sundown set for: %s" % event.next_run.strftime("%H:%M"))
+
+def get_sundown(target_date):
+    a = Astral()
+    a.solar_depression = 'civil'
+    locale = a[city]
+    sun = locale.sun(date=datetime.date(target_date.year,target_date.month,target_date.day), local=True)
+    return sun['sunset']
 
 #Setup MQTT Client
 client = mqtt.Client()
@@ -79,12 +89,12 @@ client.on_message = on_message
 #Start the MQTT thread that handles this client
 client.loop_start()
 
-#Do the scheduleing
+#Do the scheduling
 #FIXME: This should be user setable
 schedule.every().day.at("16:30").do(porchlight.on).tag("sundown")
 schedule.every().day.at("23:00").do(porchlight.off)
 #Schedule the sundown time updater
-schedule.every().day.at("16:42").do(service_sundown,client).tag("sundownscheduler")
+schedule.every().day.at("12:01").do(service_sundown,client).tag("sundownscheduler")
 
 #Use 1 Hz loop to handle scheduling
 while(True):
