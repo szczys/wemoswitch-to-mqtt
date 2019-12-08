@@ -93,8 +93,9 @@ client.loop_start()
 #FIXME: This should be user setable
 schedule.every().day.at("16:30").do(porchlight.on).tag("sundown")
 schedule.every().day.at("23:00").do(porchlight.off)
-#Schedule the sundown time updater
+#Schedule the sundown time updater and kickstart it for the first time
 schedule.every().day.at("12:01").do(service_sundown,client).tag("sundownscheduler")
+service_sundown(client)
 
 #Use 1 Hz loop to handle scheduling
 while(True):
