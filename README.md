@@ -12,7 +12,7 @@ This is a python script that bridges between a Wemo light switch and an MQTT bro
 * Adapt mqtt_porchlight.service to match your user an file location
   * Copy mqtt_porchlight.service to /etc/systemd/system folder
   * `systemctl enable mqtt_porchlight.service`
-  * `systemctl enable mqtt_porchlight.service`
+  * `systemctl start mqtt_porchlight.service`
 
 ## Todo:
 
