@@ -14,8 +14,12 @@ import datetime
 from astral import Astral
 
 
+mqtt_broker_addr = "192.168.1.135"
 porchlight_addr = "192.168.1.137"
-topic = "lighting/porchlight"
+topic_base = "lighting/porchlight"
+topic_cmd = topic_base + "/control"
+topic_status = topic_base + "/status"
+topic_schedule = topic_status + "/schedule"
 city = "Madison"
 
 
@@ -37,14 +41,14 @@ def wemo_changestate(client,state):
 
 #MQTT functions
 def publish_status(client):
-    client.publish(topic, payload="Status:%s:%s" % (porchlight.name,("Off","On")[porchlight.get_state()]))
+    client.publish(topic_status, retain=True, payload="Status:%s:%s" % (porchlight.name,("Off","On")[porchlight.get_state()]))
 
 
 def on_connect(client, userdata, flags, rc):
     connect_report = "Wemo %s: %s" % (porchlight.device_type,porchlight.name)
     print(connect_report)
-    client.subscribe(topic)
-    client.publish(topic, payload = connect_report)
+    client.subscribe(topic_cmd)
+    client.publish(topic_status, payload = connect_report)
     publish_status(client)
     
 
@@ -72,7 +76,7 @@ def service_sundown(client):
         newsundown = get_sundown(n)
         event.next_run = datetime.datetime(n.year, n.month, n.day, newsundown.hour, newsundown.minute)
         event.at_time = datetime.time(newsundown.hour, newsundown.minute)
-        client.publish(topic, payload="Next sundown set for: %s" % event.next_run.strftime("%H:%M"))
+        client.publish(topic_schedule, retain=True, qos=1, payload="Next sundown set for: %s" % event.next_run.strftime("%H:%M"))
 
 def get_sundown(target_date):
     a = Astral()
@@ -83,7 +87,7 @@ def get_sundown(target_date):
 
 #Setup MQTT Client
 client = mqtt.Client()
-client.connect("RaspberryPi",1883,60)
+client.connect(mqtt_broker_addr,1883,60)
 client.on_connect = on_connect
 client.on_message = on_message
 #Start the MQTT thread that handles this client
