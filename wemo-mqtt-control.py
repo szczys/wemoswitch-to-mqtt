@@ -12,6 +12,7 @@ import schedule
 import time
 import datetime
 from astral import Astral
+import json
 
 
 mqtt_broker_addr = "192.168.1.135"
@@ -42,6 +43,8 @@ def wemo_changestate(client,state):
 #MQTT functions
 def publish_status(client):
     client.publish(topic_status, retain=True, payload="Status:%s:%s" % (porchlight.name,("Off","On")[porchlight.get_state()]))
+def publish_schedule(client):
+    client.publish(topic_schedule, retain=True, qos=1, payload=show_schedule())
 
 
 def on_connect(client, userdata, flags, rc):
@@ -63,9 +66,10 @@ def on_message(client, userdata, msg):
         wemo_changestate(client,cmd)
     elif (cmd == "Status"):
         publish_status(client)
+        publish_schedule(client)
 
 #Scheduled task functions
-def service_sundown(client):
+def update_sundown_time(client):
     #Update any schedules with "sundown" in them to match daily changes
     #this should be run every day mid-day
     #print("sundown schedule running")
@@ -76,7 +80,7 @@ def service_sundown(client):
         newsundown = get_sundown(n)
         event.next_run = datetime.datetime(n.year, n.month, n.day, newsundown.hour, newsundown.minute)
         event.at_time = datetime.time(newsundown.hour, newsundown.minute)
-        client.publish(topic_schedule, retain=True, qos=1, payload="Next sundown set for: %s" % event.next_run.strftime("%H:%M"))
+        #client.publish(topic_schedule, retain=True, qos=1, payload="Next sundown set for: %s" % event.next_run.strftime("%H:%M"))
 
 def get_sundown(target_date):
     a = Astral()
@@ -85,8 +89,12 @@ def get_sundown(target_date):
     sun = locale.sun(date=datetime.date(target_date.year,target_date.month,target_date.day), local=True)
     return sun['sunset']
 
+def show_schedule():
+    myschedule = [str(y).split(" (last")[0] for y in sorted(schedule.jobs, key=lambda x: x.next_run)]
+    return json.dumps(myschedule, sort_keys=True, default=str)
+
 #Setup MQTT Client
-client = mqtt.Client()
+client = mqtt.Client("WemoService",False)
 client.connect(mqtt_broker_addr,1883,60)
 client.on_connect = on_connect
 client.on_message = on_message
@@ -95,13 +103,15 @@ client.loop_start()
 
 #Do the scheduling
 #FIXME: This should be user setable
-schedule.every().day.at("16:30").do(porchlight.on).tag("sundown")
-schedule.every().day.at("23:00").do(porchlight.off)
+schedule.every().day.at("16:30").do(porchlight.on).tag("sundown","on")
+schedule.every().day.at("23:00").do(porchlight.off).tag("off")
 #Schedule the sundown time updater and kickstart it for the first time
-schedule.every().day.at("12:01").do(service_sundown,client).tag("sundownscheduler")
-service_sundown(client)
+schedule.every().day.at("12:01").do(update_sundown_time,client).tag("sundownscheduler")
+update_sundown_time(client)
 
+'''
 #Use 1 Hz loop to handle scheduling
 while(True):
     schedule.run_pending()
     time.sleep(60)
+'''

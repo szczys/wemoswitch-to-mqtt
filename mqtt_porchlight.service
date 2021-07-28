@@ -2,6 +2,8 @@
 Type=simple
 User=pi
 ExecStart=/usr/bin/python3 /home/pi/wemoswitch-to-mqtt/wemo-mqtt-control.py
+Restart=always
+RestartSec=30s
 
 [Install]
 WantedBy=multi-user.target
