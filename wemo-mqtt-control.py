@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 
 #Install dependancy:
-#sudo pip3 install pywemo
-#sudo pip3 install paho-mqtt
-#sudo pip3 install schedule
-#sudo pip3 install astral
+#python3 -m pip install pywemo
+#python3 -m pip install paho-mqtt
+#python3 -m pip install schedule
+#python3 -m pip install astral==1.10.1
 
 import pywemo
 import paho.mqtt.client as mqtt
@@ -104,7 +104,7 @@ client.loop_start()
 #Do the scheduling
 #FIXME: This should be user setable
 schedule.every().day.at("16:30").do(porchlight.on).tag("sundown","on")
-schedule.every().day.at("23:00").do(porchlight.off).tag("off")
+schedule.every().day.at("05:30").do(porchlight.off).tag("off")
 #Schedule the sundown time updater and kickstart it for the first time
 schedule.every().day.at("12:01").do(update_sundown_time,client).tag("sundownscheduler")
 update_sundown_time(client)
