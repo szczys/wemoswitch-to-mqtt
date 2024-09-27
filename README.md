@@ -2,17 +2,21 @@
 
 This is a python script that bridges between a Wemo light switch and an MQTT broker
 
-* Topic: "lighting/porchlight"
-* Commands "On/Off/Status"
+- Topic: "lighting/porchlight"
+- Commands "On/Off/Status"
 
 ## Install:
 
-* Install dependencies at the top of the python file
-* Set your IP address to the Wemo switch
-* Adapt mqtt_porchlight.service to match your user an file location
-  * Copy mqtt_porchlight.service to /etc/systemd/system folder
-  * `systemctl enable mqtt_porchlight.service`
-  * `systemctl start mqtt_porchlight.service`
+- Install dependencies:
+
+    ```
+    pip install -r requirements.txt
+    ```
+- Set your IP address to the Wemo switch
+- Adapt mqtt_porchlight.service to match your user and file location
+  - Copy mqtt_porchlight.service to /etc/systemd/system folder
+  - `systemctl enable mqtt_porchlight.service`
+  - `systemctl start mqtt_porchlight.service`
 
 ## Todo:
 
