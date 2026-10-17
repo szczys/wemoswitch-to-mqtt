@@ -1,7 +1,8 @@
 [Service]
 Type=simple
-User=pi
-ExecStart=/usr/bin/python3 /home/pi/wemoswitch-to-mqtt/wemo-mqtt-control.py
+User=pihole
+WorkingDirectory=/home/pihole/wemoswitch-to-mqtt
+ExecStart=/home/pihole/wemoswitch-to-mqtt/run.sh
 Restart=always
 RestartSec=30s
 

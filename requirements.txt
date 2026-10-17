@@ -8,4 +8,5 @@ paho-mqtt==2.1.0
 pywemo==2.1.2
 requests==2.34.2
 schedule==1.2.2
+tzdata==2026.5
 urllib3==2.8.0
