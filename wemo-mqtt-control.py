@@ -1,14 +1,9 @@
 #!/usr/bin/python3
 
-#Install dependancy:
-#sudo pip3 install pywemo
-#sudo pip3 install paho-mqtt
-#sudo pip3 install schedule
-#sudo pip3 install astral
+#Dependencies are listed in requirements.txt
 
 import pywemo
 import paho.mqtt.client as mqtt
-import paho.mqtt
 import schedule
 import time
 import datetime
@@ -47,19 +42,19 @@ def publish_status(client):
 
 def connect_mqtt():
     def on_connect(client, userdata, flags, reason_code, properties):
-        if reason_code == 0:
+        if not reason_code.is_failure:
             connect_report = "Wemo %s: %s" % (porchlight.device_type,porchlight.name)
             print(connect_report)
             client.subscribe(topic_cmd)
             client.publish(topic_status, payload = connect_report)
             publish_status(client)
         else:
-            print("Failed to connect: %d\n", reason_code)
+            print(f"Failed to connect: {reason_code}")
 
     def on_message(client, userdata, message):
         try:
             cmd = message.payload.decode()
-        except:
+        except (UnicodeDecodeError, AttributeError):
             return
 
         if (cmd == "On") or (cmd == "Off"):
@@ -106,6 +101,12 @@ schedule.every().day.at("05:30").do(porchlight.off)
 schedule.every().day.at("12:01").do(service_sundown,client).tag("sundownscheduler")
 service_sundown(client)
 
-while(True):
-    schedule.run_pending()
-    time.sleep(60)
+try:
+    while(True):
+        schedule.run_pending()
+        time.sleep(60)
+except KeyboardInterrupt:
+    print("Shutting down")
+finally:
+    client.loop_stop()
+    client.disconnect()
